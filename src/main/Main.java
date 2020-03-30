@@ -1,14 +1,54 @@
 package main;
 
+import jssp.ProblemInstance;
+import jssp.ProblemReader;
+import pso.PSOAlgorithm;
+
 /**
  * Entry point
  * @author Kelian Baert & Caroline de Pourtales
  */
 public class Main {
+	public static Config config;
+	
+	public static void main(String[] args) {
+		// Read configuration file
+		config = new Config("config.properties");
+		
+		// Create a problem reader
+		ProblemReader reader = new ProblemReader();
+		
+		// Temporary stuff
+		int[] solutions = {0, 56, 1059, 1276, 1130, 1451, 1721, 977};
+		int testInstance = 4;
+		int optimalMakespan = solutions[testInstance];
+		
+		int iterations = 50000;
+		int epochSize = 1000;
+		
+		// Read problem
+		ProblemInstance instance = reader.readProblem("../../Test Data/" + testInstance + ".txt");
+		
+		// Create algorithm
+		PSOAlgorithm pso = new PSOAlgorithm(instance, config);
+		
+		pso.printState();
+		
+		for(int i = 0; i < iterations; i++) {
+			pso.runIteration();
+			if(pso.getRanIterations() % epochSize == 0) {
+				pso.printState();
+				System.out.println("Global best makespan: " + (-pso.getSwarm().getGlobalBestFitness()));
+			}
+		}
+		
+		int bestMakespan = -pso.getSwarm().getGlobalBestFitness();
+		System.out.println("Global best makespan: " + bestMakespan + "  (" + (100 * Math.abs(bestMakespan - optimalMakespan) / optimalMakespan) + "% off)");
+	}
+	
 	/*public static enum Mode {WEIGHTED_SUM_GA, MOEA};
 	public static Mode mode;
 	
-	public static Config config;
 	
 	private static boolean clearedOutputDirs = false;
 	

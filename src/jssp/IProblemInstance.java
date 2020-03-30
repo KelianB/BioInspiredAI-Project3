@@ -1,4 +1,4 @@
-package ga;
+package jssp;
 
 /**
  * Interface used to represent a problem instance.
