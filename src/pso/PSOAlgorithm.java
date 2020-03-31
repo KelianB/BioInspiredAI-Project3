@@ -5,6 +5,7 @@ import java.util.Random;
 
 import jssp.ProblemInstance;
 import main.Config;
+import utils.GanttChart;
 
 public class PSOAlgorithm {
 	private ProblemInstance problemInstance;
@@ -102,5 +103,42 @@ public class PSOAlgorithm {
 	 */
 	public float random() {
 		return random.nextFloat();
+	}
+	
+	public static GanttChart createGanttChart(ProblemInstance pb, float[] position) {
+		// Get the operation order (sort an array of operation indices according to the position values)
+		Integer[] operationOrder = new Integer[pb.getNumberOfOperations()];
+		for(int i = 0; i < operationOrder.length; i++)
+			operationOrder[i] = i;
+		Arrays.sort(operationOrder, (i1, i2) -> Float.compare(position[i1], position[i2]));
+		
+		int machines = pb.getOperationsPerJob();
+		
+		// Store the current operation index for each job
+		int[] currentOperationIndices = new int[pb.getNumberOfJobs()]; 
+		
+		// Store current time for each machine
+		int[] machineTimes = new int[machines];
+				
+		// Store current time of each job
+		int[] jobTimes = new int[pb.getNumberOfJobs()];
+		
+		GanttChart gc = new GanttChart(machines);
+		
+		for(int operationIndex: operationOrder) {
+			int job = (int) (operationIndex / pb.getOperationsPerJob());
+			int machine = pb.getMachine(job, currentOperationIndices[job]);
+			
+			int duration = pb.getOperationOnMachine(job, machine).getDuration();
+			int operationStartTime = Math.max(jobTimes[job], machineTimes[machine]);
+			int endTime = operationStartTime + duration;
+			gc.addTask(machine, job, operationStartTime, duration);
+			machineTimes[machine] = endTime;
+			jobTimes[job] = endTime;
+			
+			currentOperationIndices[job]++;
+		}
+	
+		return gc;
 	}
 }

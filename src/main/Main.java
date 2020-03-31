@@ -3,6 +3,7 @@ package main;
 import jssp.ProblemInstance;
 import jssp.ProblemReader;
 import pso.PSOAlgorithm;
+import utils.GanttChart;
 
 /**
  * Entry point
@@ -20,7 +21,7 @@ public class Main {
 		
 		// Temporary stuff
 		int[] solutions = {0, 56, 1059, 1276, 1130, 1451, 1721, 977};
-		int testInstance = 4;
+		int testInstance = 1;
 		int optimalMakespan = solutions[testInstance];
 		
 		int iterations = 50000;
@@ -44,6 +45,9 @@ public class Main {
 		
 		int bestMakespan = -pso.getSwarm().getGlobalBestFitness();
 		System.out.println("Global best makespan: " + bestMakespan + "  (" + (100 * Math.abs(bestMakespan - optimalMakespan) / optimalMakespan) + "% off)");
+		GanttChart gc = PSOAlgorithm.createGanttChart(instance, pso.getSwarm().getGlobalBestPosition());
+		System.out.println(gc.test());
+		System.out.println(gc);
 	}
 	
 	/*public static enum Mode {WEIGHTED_SUM_GA, MOEA};

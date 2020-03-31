@@ -4,7 +4,7 @@ package jssp;
  * Represents a JSSP problem instance.
  * @author Kelian Baert & Caroline de Pourtales
  */
-public class ProblemInstance implements IProblemInstance {	
+public class ProblemInstance {	
 	// Name of the problem instance
 	private String name;
 	
@@ -89,9 +89,11 @@ public class ProblemInstance implements IProblemInstance {
 		return null;
 	}
 	
-	@Override
+	/**
+	 * Get the name of this problem instance.
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
-	
 }

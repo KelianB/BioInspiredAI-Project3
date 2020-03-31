@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Handles reading JSSP problem instances
  * @author Kelian Baert & Caroline de Pourtales
  */
-public class ProblemReader implements IProblemReader {
+public class ProblemReader {
 	/**
 	 * Create a Problem Reader
 	 */
@@ -18,7 +18,12 @@ public class ProblemReader implements IProblemReader {
 		
 	}
 	
-	@Override
+	/**
+	 * Reads a problem instance from the given problem name.
+	 * @param path - The path to the problem instance file
+	 * @return a problem instance
+	 * @throws ProblemReadingException
+	 */
 	public ProblemInstance readProblem(String path) {
 		File file = new File(path);
 		

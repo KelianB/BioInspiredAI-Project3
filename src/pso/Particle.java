@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import jssp.ProblemInstance;
 import utils.CachedValue;
+import utils.GanttChart;
 
 public class Particle {
 	// Store a reference to the PSO
@@ -146,6 +147,7 @@ public class Particle {
 	
 		return makespan;
 	}
+	
 	
 
 	/**
