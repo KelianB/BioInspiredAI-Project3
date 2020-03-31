@@ -1,5 +1,8 @@
 package jssp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents a JSSP problem instance.
  * @author Kelian Baert & Caroline de Pourtales
@@ -11,24 +14,27 @@ public class ProblemInstance {
 	// Store jobs as arrays of operations
 	private Operation[][] jobs;
 
+	// Also store jobs in machine:Operation maps for faster access
+	private Map<Integer, Operation>[] jobMachineMaps;
+		
 	/**
 	 * Create a new problem instance.
 	 * @param name - The name of this problem instance
 	 * @param jobs - The jobs, each represented as an array of operations
 	 */
+	@SuppressWarnings("unchecked")
 	public ProblemInstance(String name, Operation[][] jobs) {
 		this.name = name;
 		this.jobs = jobs;
+		this.jobMachineMaps = new Map[jobs.length];
 		
-		// Test print
-		/*
-		System.out.println("jobs: " + numJobs + ", machines: " + numMachines); 
+		// Fill a machine:Operation map for each job
 		for(int i = 0; i < jobs.length; i++) {
-			String str = "";
+			Map<Integer, Operation> machineMap = new HashMap<Integer, Operation>();
 			for(int j = 0; j < jobs[i].length; j++)
-				str += jobs[i][j] + ", ";
-			System.out.println("Job " + i + ": " + str);
-		}*/
+				machineMap.put(jobs[i][j].getMachine(), jobs[i][j]);
+			jobMachineMaps[i] = machineMap;
+		}
 	}
 	
 	/**
@@ -51,7 +57,7 @@ public class ProblemInstance {
 	 * Get the total number of operations in this problem instance.
 	 * @return the total number of operations (i.e. the number of jobs times the number of machines)
 	 */
-	public int getNumberOfOperations() {
+	public int getTotalOperations() {
 		return getNumberOfJobs() * getOperationsPerJob();
 	}
 	
@@ -82,11 +88,7 @@ public class ProblemInstance {
 	 * @return the Operation that must be performed on the given machine, for the given job
 	 */
 	public Operation getOperationOnMachine(int job, int machine) {
-		for(int o = 0; o < jobs[job].length; o++) {
-			if(jobs[job][o].getMachine() == machine)
-				return jobs[job][o];
-		}
-		return null;
+		return jobMachineMaps[job].get(machine);
 	}
 	
 	/**

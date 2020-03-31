@@ -13,7 +13,7 @@ public class Config {
 	private Properties properties;
 	
 	/**
-	 * Create a blank config object
+	 * Create a blank Config object
 	 */
 	public Config() {
 		properties = new Properties();

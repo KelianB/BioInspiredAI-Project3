@@ -45,7 +45,7 @@ public class ProblemReader {
 				for(int j = 0; j < numMachines; j++) {
 					int machine = jobData[j*2];
 					int time = jobData[j*2+1];
-					jobs[i][j] = new Operation(i, machine, time);
+					jobs[i][j] = new Operation(machine, time);
 				}
 			}
 			
@@ -63,7 +63,7 @@ public class ProblemReader {
 	
 	/**
 	 * Parses a string of integers separated by spaces.
-	 * @param str - A string of integers separated by spaces, e.g. "  2   1  0   3  1   6  3   7"
+	 * @param str - A string of integers separated by spaces, e.g. "  2   1  0   3   6  3   7"
 	 * @return an array of integers found in the given string
 	 */
 	private static int[] parseLineOfIntegers(String str) {

@@ -1,15 +1,21 @@
 package pso;
 
+/**
+ * Represents a Swarm, in the context of Particle Swarm Optimization
+ * @author Kelian Baert & Caroline de Pourtales
+ */
 public class Swarm {
+	// The particles that make up the swarm
 	private Particle[] particles;
 	
+	// Store the best position achieved by the swarm, and its associated fitness
 	private float[] globalBestPosition;
 	private int globalBestFitness;
 	
 	private Swarm(PSOAlgorithm alg, int size) {
 		this.particles = new Particle[size];
 		this.globalBestFitness = Integer.MIN_VALUE;
-		this.globalBestPosition = new float[alg.getProblemInstance().getNumberOfOperations()];
+		this.globalBestPosition = new float[alg.getProblemInstance().getTotalOperations()];
 	}
 	
 	/**
