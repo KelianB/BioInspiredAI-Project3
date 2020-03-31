@@ -15,7 +15,7 @@ public class GanttChart {
 	 * Create a Gantt-Chart with the given number of rows.
 	 * @param rows - The number of rows in the chart
 	 */
-	
+	@SuppressWarnings("unchecked")
 	public GanttChart(int rows) {
 		this.rows = new ArrayList[rows];
 		for(int i = 0; i < rows; i++)
