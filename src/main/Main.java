@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
+import aco.ACOAlgorithm;
 import jssp.JSSPAlgorithm;
 import jssp.ProblemInstance;
 import jssp.ProblemReader;
@@ -49,11 +50,20 @@ public class Main {
 		
 		/** -------------TEMPORARY ------------- */
 		int optimalMakespan = Arrays.asList(56, 1059, 1276, 1130, 1451, 1721, 977).get(Integer.parseInt(instance.getName().substring(0, 1)) - 1);
-		int epochSize = 100;
 		/** ----------------------------------- */
 		
+		String mode = config.get("mode");
+		
 		// Create algorithm
-		JSSPAlgorithm alg = new PSOAlgorithm(instance, config);
+		JSSPAlgorithm alg = null;
+		if(mode.equals("ACO"))
+			alg = new ACOAlgorithm(instance, config);
+		else if(mode.equals("PSO"))
+			alg = new PSOAlgorithm(instance, config);
+		else {
+			System.err.println("[Critical Error] Mode '" + mode + "' does not exist.");
+			System.exit(1);
+		}
 		
 		/*Runnable onTermination = () ->  {
 			System.out.println("TERMINATION");
@@ -62,6 +72,7 @@ public class Main {
 		Runtime.getRuntime().addShutdownHook(new Thread(onTermination));*/
 		
 		int iterations = config.getInt("maxIterations");
+		int epochSize = config.getInt("epochSize");
 		
 		long epochStartTime = System.currentTimeMillis();
 		alg.printState();
@@ -73,7 +84,6 @@ public class Main {
 				epochStartTime = System.currentTimeMillis();
 			}
 		}
-		
 
 		Integer[] bestSolution = alg.getBestSolution();
 		int bestMakespan = alg.computeMakespan(bestSolution);

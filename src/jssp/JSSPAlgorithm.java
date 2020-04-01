@@ -99,7 +99,11 @@ public abstract class JSSPAlgorithm {
 		
 		int makespan = 0;
 		
-		for(int operationIndex : operationOrder) {
+		for(Integer operationIndex : operationOrder) {
+			// Allow incomplete schedules
+			if(operationIndex == null)
+				break;
+			
 			int job = (int) (operationIndex / pb.getOperationsPerJob());
 			int machine = pb.getMachine(job, currentOperationIndices[job]);
 			

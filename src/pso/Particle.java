@@ -21,7 +21,6 @@ public class Particle {
 	private float[] localBestPosition;
 	private int localBestFitness;
 	
-	
 	public Particle(PSOAlgorithm alg) {
 		this.alg = alg;	
 		
