@@ -90,7 +90,7 @@ public class ProblemInstance {
 	public Operation getOperationOnMachine(int job, int machine) {
 		return jobMachineMaps[job].get(machine);
 	}
-	
+		
 	/**
 	 * Get the name of this problem instance.
 	 * @return the name

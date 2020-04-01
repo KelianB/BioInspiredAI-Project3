@@ -35,6 +35,22 @@ public class GanttChart {
 	}
 	
 	/**
+	 * Get the time at which all tasks are finished (i.e. the makespan).
+	 * @return the end time
+	 */
+	public int getEndTime() {
+		int endTime = 0;
+		for(int i = 0; i < this.rows.length; i++) {
+			if(this.rows[i].size() >= 1) {
+				int rowEndTime = this.rows[i].get(this.rows[i].size() - 1).time;
+				if(rowEndTime > endTime)
+					endTime = rowEndTime;
+			}
+		}
+		return endTime;
+	}
+	
+	/**
 	 * Test the validity of the chart.
 	 * @return true if this is a valid Gantt Chart, else false
 	 */
