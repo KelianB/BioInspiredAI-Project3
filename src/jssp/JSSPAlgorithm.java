@@ -104,10 +104,10 @@ public abstract class JSSPAlgorithm {
 			if(operationIndex == null)
 				break;
 			
-			int job = (int) (operationIndex / pb.getOperationsPerJob());
+			int job = operationIndex / pb.getOperationsPerJob();
 			int machine = pb.getMachine(job, currentOperationIndices[job]);
+			int duration = pb.getDuration(job, currentOperationIndices[job]);
 			
-			int duration = pb.getOperationOnMachine(job, machine).getDuration();
 			int operationStartTime = Math.max(jobTimes[job], machineTimes[machine]);
 			int endTime = operationStartTime + duration;
 			machineTimes[machine] = endTime;
@@ -150,8 +150,8 @@ public abstract class JSSPAlgorithm {
 		for(int operationIndex : operationOrder) {
 			int job = (int) (operationIndex / pb.getOperationsPerJob());
 			int machine = pb.getMachine(job, currentOperationIndices[job]);
+			int duration = pb.getDuration(job, currentOperationIndices[job]);
 			
-			int duration = pb.getOperationOnMachine(job, machine).getDuration();
 			int operationStartTime = Math.max(jobTimes[job], machineTimes[machine]);
 			int endTime = operationStartTime + duration;
 			gc.addTask(machine, job, operationStartTime, duration);
