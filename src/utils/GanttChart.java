@@ -42,7 +42,8 @@ public class GanttChart {
 		int endTime = 0;
 		for(int i = 0; i < this.rows.length; i++) {
 			if(this.rows[i].size() >= 1) {
-				int rowEndTime = this.rows[i].get(this.rows[i].size() - 1).time;
+				GanttTask lastTask = this.rows[i].get(this.rows[i].size() - 1);
+				int rowEndTime = lastTask.time + lastTask.duration;
 				if(rowEndTime > endTime)
 					endTime = rowEndTime;
 			}
