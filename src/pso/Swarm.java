@@ -12,6 +12,11 @@ public class Swarm {
 	private float[] globalBestPosition;
 	private int globalBestFitness;
 	
+	/**
+	 * Initialize a Swarm.
+	 * @param alg - A reference to the Particle Swarm Optimizer
+	 * @param size - The size of the swarm
+	 */
 	private Swarm(PSOAlgorithm alg, int size) {
 		this.particles = new Particle[size];
 		this.globalBestFitness = Integer.MIN_VALUE;
@@ -54,6 +59,9 @@ public class Swarm {
 		return averageFitness;
 	}
 	
+	/**
+	 * Find the best particle in the swarm, and update the swarm's global best as needed.
+	 */
 	protected void updateGlobalBest() {
 		for(Particle p : this.getParticles()) {
 			if(p.getLocalBestFitness() > globalBestFitness) {
@@ -65,10 +73,18 @@ public class Swarm {
 		}
 	}
 	
+	/**
+	 * Get the best position ever found by this swarm (i.e. the positionw with the highest fitness).
+	 * @return an array of coordinates
+	 */
 	public float[] getGlobalBestPosition() {
 		return globalBestPosition;
 	}
 	
+	/**
+	 * Get the best fitness ever attained by this swarm.
+	 * @return the finess associated with the best global position
+	 */
 	public int getGlobalBestFitness() {
 		return globalBestFitness;
 	}

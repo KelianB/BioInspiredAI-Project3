@@ -47,10 +47,18 @@ public class ACOAlgorithm extends JSSPAlgorithm {
 		return colony;
 	}	
 
+	/**
+	 * Get the alpha parameter of this ACO (used by ants in probability calculation)
+	 * @return alpha
+	 */
 	public float getAlpha() {
 		return alpha;
 	}
 	
+	/**
+	 * Get the beta parameter of this ACO (used by ants in probability calculation)
+	 * @return beta
+	 */
 	public float getBeta() {
 		return beta;
 	}

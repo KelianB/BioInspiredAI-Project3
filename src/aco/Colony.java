@@ -1,8 +1,5 @@
 package aco;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jssp.ProblemInstance;
 
 /**
@@ -10,9 +7,6 @@ import jssp.ProblemInstance;
  * @author Kelian Baert & Caroline de Pourtales
  */
 public class Colony {
-	// Store a reference to the ACO
-	private ACOAlgorithm alg;
-		
 	// The ants that make up the colony
 	private Ant[] ants;
 	
@@ -27,7 +21,6 @@ public class Colony {
 	private float Q, rho;
 	
 	public Colony(ACOAlgorithm alg, int size, float initialPheromones, float Q, float rho) {
-		this.alg = alg;
 		this.ants = new Ant[size];
 		this.Q = Q;
 		this.rho = rho;
@@ -42,30 +35,19 @@ public class Colony {
 		for(int i = 0; i < pb.getNumberOfJobs(); i++)
 			pheromones[0][1 + i * pb.getOperationsPerJob()] = initialPheromones;
 		for(int i = 0; i < pb.getTotalOperations(); i++) {
-			List<Integer> accessible = getPossibleNextOperations(i);
-			for(int op: accessible)
-				pheromones[i+1][op+1] = initialPheromones;
+			int job = i / pb.getOperationsPerJob();
+			// Set initial pheromones on each edge from i to an accessible operation
+			for(int op = 0; op < pb.getTotalOperations(); op++) {
+				int jobOp = op / pb.getOperationsPerJob();		
+				if(jobOp != job || op == i+1)
+					pheromones[i+1][op+1] = initialPheromones;
+			}
 		}
 		
 		// Create ants
 		for(int i = 0; i < size; i++)
 			this.ants[i] = new Ant(alg);
 	}
-	
-	private List<Integer> getPossibleNextOperations(int operationIndex) {
-		ProblemInstance pb = alg.getProblemInstance();
-		
-		List<Integer> accessible = new ArrayList<Integer>(); 
-		int job = (int) (operationIndex / pb.getOperationsPerJob());
-		for(int i = 0; i < pb.getTotalOperations(); i++) {
-			int jobI = (int) (i / pb.getOperationsPerJob());		
-			if(jobI != job || i == operationIndex + 1)
-				accessible.add(i);
-		}
-		
-		return accessible;
-	}
-	
 	
 	/**
 	 * Get all ants in the colony.

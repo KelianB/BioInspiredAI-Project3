@@ -16,7 +16,6 @@ public class ProblemInstance {
 	 * @param name - The name of this problem instance
 	 * @param jobs - The jobs, each represented as an array of operations
 	 */
-	@SuppressWarnings("unchecked")
 	public ProblemInstance(String name, Operation[][] jobs) {
 		this.name = name;
 		this.jobs = jobs;

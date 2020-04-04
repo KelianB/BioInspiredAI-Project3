@@ -28,6 +28,10 @@ public class Ant {
 	// Node connections in the pheromone matrix. Ant uses edge (i,j) if connections[i] = j
 	private int[] connections;
 	
+	/**
+	 * Initialize an Ant
+	 * @param alg - A reference to the Ant Colony Optimizer
+	 */
 	public Ant(ACOAlgorithm alg) {
 		this.alg = alg;	
 		scheduledOperations = new Integer[alg.getProblemInstance().getTotalOperations()];
@@ -101,10 +105,10 @@ public class Ant {
 		
 		double denominator = 0;
 		for(int k : accessibleOperations)
-			denominator += Math.pow(alg.getColony().getPheromones(currentNode, k+1), alpha) / Math.pow(distance(k), beta);
+			denominator += Math.pow(alg.getColony().getPheromones(currentNode, k+1), alpha) / Math.pow(distance(k) + 0.01, beta);
 		
 		for(int j : accessibleOperations)
-			probabilities[j] = (float) ((Math.pow(alg.getColony().getPheromones(currentNode, j+1), alpha) / Math.pow(distance(j), beta)) / denominator);
+			probabilities[j] = (float) ((Math.pow(alg.getColony().getPheromones(currentNode, j+1), alpha) / Math.pow(distance(j) + 0.01, beta)) / denominator);
 			
 		/*System.out.println(currentNode);
 		System.out.println(Arrays.toString(scheduledOperations));
@@ -113,7 +117,7 @@ public class Ant {
 		
 		// Pick a node using roulette wheel with the calculated probabilities
 		int operation = RouletteWheel.spinOnce(alg.getRandom(), probabilities);
-		
+	
 		return operation;
 	}
 	
