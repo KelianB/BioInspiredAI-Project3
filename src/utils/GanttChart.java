@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -18,9 +17,6 @@ public class GanttChart {
 	// Rows of the chart, as lists of tasks
 	private List<GanttTask>[] rows;
 	
-	// Keep track of the current index for each category of tasks
-	private Map<Integer, Integer> categoryIndices;
-	
 	/**
 	 * Create a Gantt-Chart with the given number of rows.
 	 * @param rows - The number of rows in the chart
@@ -30,26 +26,20 @@ public class GanttChart {
 		this.rows = new ArrayList[rows];
 		for(int i = 0; i < rows; i++)
 			this.rows[i] = new ArrayList<GanttTask>();
-		
-		categoryIndices = new HashMap<Integer, Integer>();
 	}
 	
 	/**
 	 * Add a task to the Gantt-Chart
 	 * @param row - A row index in the chart
 	 * @param category - The category (color) of the task (note: two tasks of the same category cannot be executed in parallel)
+	 * @param indexInCategory - The index of the task within its category (for display purposes only)
 	 * @param time - The time at which this task starts being executed
 	 * @param duration - The task duration
 	 */
-	public void addTask(int row, int category, int time, int duration) {
-		if(!categoryIndices.containsKey(category))
-			categoryIndices.put(category, 0);
-		
+	public void addTask(int row, int category, int indexInCategory, int time, int duration) {
 		// Add the new task to the corresponding row and keep the row sorted by time
-		this.rows[row].add(new GanttTask(category, categoryIndices.get(category), time, duration));
+		this.rows[row].add(new GanttTask(category, indexInCategory, time, duration));
 		this.rows[row].sort((a,b) -> a.time - b.time);
-		
-		categoryIndices.put(category, categoryIndices.get(category) + 1);
 	}
 
 	/**
