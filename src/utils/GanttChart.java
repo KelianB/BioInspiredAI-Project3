@@ -1,10 +1,13 @@
 package utils;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -12,7 +15,11 @@ import java.util.Random;
  * @author Kelian Baert & Caroline de Pourtales
  */
 public class GanttChart {
+	// Rows of the chart, as lists of tasks
 	private List<GanttTask>[] rows;
+	
+	// Keep track of the current index for each category of tasks
+	private Map<Integer, Integer> categoryIndices;
 	
 	/**
 	 * Create a Gantt-Chart with the given number of rows.
@@ -23,6 +30,8 @@ public class GanttChart {
 		this.rows = new ArrayList[rows];
 		for(int i = 0; i < rows; i++)
 			this.rows[i] = new ArrayList<GanttTask>();
+		
+		categoryIndices = new HashMap<Integer, Integer>();
 	}
 	
 	/**
@@ -33,8 +42,14 @@ public class GanttChart {
 	 * @param duration - The task duration
 	 */
 	public void addTask(int row, int category, int time, int duration) {
-		this.rows[row].add(new GanttTask(category, time, duration));
+		if(!categoryIndices.containsKey(category))
+			categoryIndices.put(category, 0);
+		
+		// Add the new task to the corresponding row and keep the row sorted by time
+		this.rows[row].add(new GanttTask(category, categoryIndices.get(category), time, duration));
 		this.rows[row].sort((a,b) -> a.time - b.time);
+		
+		categoryIndices.put(category, categoryIndices.get(category) + 1);
 	}
 
 	/**
@@ -114,10 +129,11 @@ public class GanttChart {
 	 */
 	static class GanttTask {
 		private int category;
+		private int indexInCategory;
 		private int time;
 		private int duration;
 		
-		public GanttTask(int category, int time, int duration) {
+		public GanttTask(int category, int indexInCategory, int time, int duration) {
 			this.category = category;
 			this.time = time;
 			this.duration = duration;
@@ -125,7 +141,8 @@ public class GanttChart {
 	}
 
 	/***
-	 * Create the Gantt-Chart
+	 * Generate an image from this Gantt-Chart.
+	 * @return an image representing this chart
 	 */
 	public BufferedImage generateImage() {
 
@@ -133,39 +150,41 @@ public class GanttChart {
 		 * text into box
 		 * CHECK
 		 */
-
-		BufferedImage bufferedImage = new BufferedImage(1200, 900, BufferedImage.TYPE_INT_RGB);
+		
+		int w = 1200, h = 900;
+		
+		BufferedImage bufferedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = bufferedImage.createGraphics();
 		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+		g.fillRect(0, 0, w, h);
 		Font stringFont = new Font( "SansSerif", Font.PLAIN, 20 );
 		g.setFont(stringFont);
 		g.setColor(Color.BLACK);
 
 		//machines scale
-		float machineScale = (bufferedImage.getHeight()-30)/rows.length ;
+		float machineScale = (h-30)/rows.length ;
 		for (int i=0 ; i<rows.length ; i++) {
 			String yLabel = "machine" + " " + i +"";
-			g.drawLine(200,(int)(i*machineScale), bufferedImage.getWidth(), (int)(i*machineScale));
+			g.drawLine(200,(int)(i*machineScale), w, (int)(i*machineScale));
 			g.drawString(yLabel,10,i*machineScale +machineScale/2);
 		}
 
 		//time scale
-		float timeScale = (bufferedImage.getWidth()-280)/getEndTime() ;
+		float timeScale = (w-280)/getEndTime() ;
 		//draw the time line
-		g.drawLine(200,bufferedImage.getHeight()-15,bufferedImage.getWidth(),bufferedImage.getHeight()-15);
-		for (int i=200 ; i < bufferedImage.getWidth()-80 ; i++) {
+		g.drawLine(200,h-15,w,h-15);
+		for (int i=200 ; i < w-80 ; i++) {
 			if (((i-200)/timeScale) % ((int)getEndTime()/10)==0) {
                 g.setColor(Color.BLACK);
 				String xLabel = (i-200)/timeScale + "";
-				g.drawString(xLabel,i,bufferedImage.getHeight()-10);
-				g.drawLine(i,bufferedImage.getHeight()-15,i,0);
+				g.drawString(xLabel,i,h-10);
+				g.drawLine(i,h-15,i,0);
 			}
 			if ((i-200)/timeScale==getEndTime()) {
                 g.setColor(Color.BLACK);
                 String xLabel = getEndTime() + "";
-                g.drawString(xLabel,i,bufferedImage.getHeight()-30);
-				g.drawLine(i,bufferedImage.getHeight()-15,i,0);
+                g.drawString(xLabel,i,h-30);
+				g.drawLine(i,h-15,i,0);
 			}
 		}
 
@@ -198,6 +217,6 @@ public class GanttChart {
 		}
 
 		g.dispose();
-		return bufferedImage ;
+		return bufferedImage;
 	}
 }
