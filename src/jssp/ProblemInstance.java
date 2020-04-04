@@ -1,8 +1,5 @@
 package jssp;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Represents a JSSP problem instance.
  * @author Kelian Baert & Caroline de Pourtales
@@ -14,9 +11,6 @@ public class ProblemInstance {
 	// Store jobs as arrays of operations
 	private Operation[][] jobs;
 
-	// Also store jobs in machine:Operation maps for faster access
-	private Map<Integer, Operation>[] jobMachineMaps;
-		
 	/**
 	 * Create a new problem instance.
 	 * @param name - The name of this problem instance
@@ -26,15 +20,6 @@ public class ProblemInstance {
 	public ProblemInstance(String name, Operation[][] jobs) {
 		this.name = name;
 		this.jobs = jobs;
-		this.jobMachineMaps = new Map[jobs.length];
-		
-		// Fill a machine:Operation map for each job
-		for(int i = 0; i < jobs.length; i++) {
-			Map<Integer, Operation> machineMap = new HashMap<Integer, Operation>();
-			for(int j = 0; j < jobs[i].length; j++)
-				machineMap.put(jobs[i][j].getMachine(), jobs[i][j]);
-			jobMachineMaps[i] = machineMap;
-		}
 	}
 	
 	/**
@@ -79,16 +64,6 @@ public class ProblemInstance {
 	 */
 	public int getDuration(int job, int operation) {
 		return jobs[job][operation].getDuration();
-	}
-		
-	/**
-	 * Get the operation of the given job that must be performed on the given machine.
-	 * @param job - A job index
-	 * @param machine - A machine index
-	 * @return the Operation that must be performed on the given machine, for the given job
-	 */
-	public Operation getOperationOnMachine(int job, int machine) {
-		return jobMachineMaps[job].get(machine);
 	}
 		
 	/**
