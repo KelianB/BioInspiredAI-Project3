@@ -1,8 +1,11 @@
 package utils;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Gantt-Chart representation.
@@ -33,7 +36,7 @@ public class GanttChart {
 		this.rows[row].add(new GanttTask(category, time, duration));
 		this.rows[row].sort((a,b) -> a.time - b.time);
 	}
-	
+
 	/**
 	 * Get the time at which all tasks are finished (i.e. the makespan).
 	 * @return the end time
@@ -42,7 +45,8 @@ public class GanttChart {
 		int endTime = 0;
 		for(int i = 0; i < this.rows.length; i++) {
 			if(this.rows[i].size() >= 1) {
-				int rowEndTime = this.rows[i].get(this.rows[i].size() - 1).time;
+				GanttTask lastTask = this.rows[i].get(this.rows[i].size() - 1);
+				int rowEndTime = lastTask.time + lastTask.duration;
 				if(rowEndTime > endTime)
 					endTime = rowEndTime;
 			}
@@ -118,5 +122,82 @@ public class GanttChart {
 			this.time = time;
 			this.duration = duration;
 		}
+	}
+
+	/***
+	 * Create the Gantt-Chart
+	 */
+	public BufferedImage generateImage() {
+
+		/* TODO
+		 * text into box
+		 * CHECK
+		 */
+
+		BufferedImage bufferedImage = new BufferedImage(1200, 900, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = bufferedImage.createGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+		Font stringFont = new Font( "SansSerif", Font.PLAIN, 20 );
+		g.setFont(stringFont);
+		g.setColor(Color.BLACK);
+
+		//machines scale
+		float machineScale = (bufferedImage.getHeight()-30)/rows.length ;
+		for (int i=0 ; i<rows.length ; i++) {
+			String yLabel = "machine" + " " + i +"";
+			g.drawLine(200,(int)(i*machineScale), bufferedImage.getWidth(), (int)(i*machineScale));
+			g.drawString(yLabel,10,i*machineScale +machineScale/2);
+		}
+
+		//time scale
+		float timeScale = (bufferedImage.getWidth()-280)/getEndTime() ;
+		//draw the time line
+		g.drawLine(200,bufferedImage.getHeight()-15,bufferedImage.getWidth(),bufferedImage.getHeight()-15);
+		for (int i=200 ; i < bufferedImage.getWidth()-80 ; i++) {
+			if (((i-200)/timeScale) % ((int)getEndTime()/10)==0) {
+                g.setColor(Color.BLACK);
+				String xLabel = (i-200)/timeScale + "";
+				g.drawString(xLabel,i,bufferedImage.getHeight()-10);
+				g.drawLine(i,bufferedImage.getHeight()-15,i,0);
+			}
+			if ((i-200)/timeScale==getEndTime()) {
+                g.setColor(Color.BLACK);
+                String xLabel = getEndTime() + "";
+                g.drawString(xLabel,i,bufferedImage.getHeight()-30);
+				g.drawLine(i,bufferedImage.getHeight()-15,i,0);
+			}
+		}
+
+		//generate list of colors
+		int njobs = rows[0].size();
+		List<Color> colors = new ArrayList<Color>();
+		Random Rand = new Random();
+		for (int i=0 ; i< njobs ; i++) {
+			float r = Rand.nextFloat();
+			float green = Rand.nextFloat();
+			float b = Rand.nextFloat();
+			Color randomColor = new Color(r, green, b);
+			colors.add(randomColor);
+		}
+
+		//fill the schedule
+		for (int machine=0 ; machine<rows.length ; machine++) {
+			for (GanttTask operation : rows[machine]) {
+				g.setColor(colors.get(operation.category));
+				g.fillRect((int) (200+operation.time*timeScale), (int)(machine*machineScale) , (int) (operation.duration*timeScale), (int) (machineScale));
+
+				g.setColor(Color.BLACK);
+				stringFont = new Font( "SansSerif", Font.PLAIN, 15 );
+				g.setFont(stringFont);
+				String label = operation.category + " . " + "num op" + "";
+				int x = (int) (200+(operation.time+operation.duration/2)*timeScale);
+				int y = (int) (machine*machineScale + machineScale/2);
+				g.drawString(label,x,y);
+			}
+		}
+
+		g.dispose();
+		return bufferedImage ;
 	}
 }
