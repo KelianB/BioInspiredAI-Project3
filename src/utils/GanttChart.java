@@ -127,6 +127,7 @@ public class GanttChart {
 			this.category = category;
 			this.time = time;
 			this.duration = duration;
+			this.indexInCategory=indexInCategory;
 		}
 	}
 
@@ -183,7 +184,7 @@ public class GanttChart {
 		List<Color> colors = new ArrayList<Color>();
 		Random Rand = new Random();
 		for (int i=0 ; i< njobs ; i++) {
-			float r = Rand.nextFloat();
+			float r = Rand..nextFloat();
 			float green = Rand.nextFloat();
 			float b = Rand.nextFloat();
 			Color randomColor = new Color(r, green, b);
@@ -199,7 +200,7 @@ public class GanttChart {
 				g.setColor(Color.BLACK);
 				stringFont = new Font( "SansSerif", Font.PLAIN, 15 );
 				g.setFont(stringFont);
-				String label = operation.category + " . " + "num op" + "";
+				String label = operation.category + " . " + operation.indexInCategory + "";
 				int x = (int) (200+(operation.time+operation.duration/2)*timeScale);
 				int y = (int) (machine*machineScale + machineScale/2);
 				g.drawString(label,x,y);
