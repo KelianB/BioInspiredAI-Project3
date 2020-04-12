@@ -144,15 +144,18 @@ public class GanttChart {
 		
 		int w = 1200, h = 900;
 		
-		BufferedImage bufferedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = bufferedImage.createGraphics();
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = img.createGraphics();
+		
+		// Background
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, w, h);
-		Font stringFont = new Font( "SansSerif", Font.PLAIN, 20 );
-		g.setFont(stringFont);
+
+		Font font = new Font("SansSerif", Font.PLAIN, 20 );
+		g.setFont(font);
 		g.setColor(Color.BLACK);
 
-		//machines scale
+		// machines scale
 		float machineScale = (h-30)/rows.length ;
 		for (int i=0 ; i<rows.length ; i++) {
 			String yLabel = "machine" + " " + i +"";
@@ -160,9 +163,9 @@ public class GanttChart {
 			g.drawString(yLabel,10,i*machineScale +machineScale/2);
 		}
 
-		//time scale
-		float timeScale = (w-280)/getEndTime() ;
-		//draw the time line
+		// time scale
+		float timeScale = (w-280)/getEndTime();
+		// draw the time line
 		g.drawLine(200,h-15,w,h-15);
 		for (int i=200 ; i < w-80 ; i++) {
 			if (((i-200)/timeScale) % ((int)getEndTime()/10)==0) {
@@ -179,27 +182,27 @@ public class GanttChart {
 			}
 		}
 
-		//generate list of colors
+		// generate list of colors
 		int njobs = rows[0].size();
 		List<Color> colors = new ArrayList<Color>();
-		Random Rand = new Random();
+		Random rand = new Random();
 		for (int i=0 ; i< njobs ; i++) {
-			float r = Rand..nextFloat();
-			float green = Rand.nextFloat();
-			float b = Rand.nextFloat();
+			float r = rand.nextFloat();
+			float green = rand.nextFloat();
+			float b = rand.nextFloat();
 			Color randomColor = new Color(r, green, b);
 			colors.add(randomColor);
 		}
 
-		//fill the schedule
+		// fill the schedule
 		for (int machine=0 ; machine<rows.length ; machine++) {
 			for (GanttTask operation : rows[machine]) {
 				g.setColor(colors.get(operation.category));
 				g.fillRect((int) (200+operation.time*timeScale), (int)(machine*machineScale) , (int) (operation.duration*timeScale), (int) (machineScale));
 
 				g.setColor(Color.BLACK);
-				stringFont = new Font( "SansSerif", Font.PLAIN, 15 );
-				g.setFont(stringFont);
+				font = new Font( "SansSerif", Font.PLAIN, 15 );
+				g.setFont(font);
 				String label = operation.category + " . " + operation.indexInCategory + "";
 				int x = (int) (200+(operation.time+operation.duration/2)*timeScale);
 				int y = (int) (machine*machineScale + machineScale/2);
@@ -208,6 +211,6 @@ public class GanttChart {
 		}
 
 		g.dispose();
-		return bufferedImage;
+		return img;
 	}
 }

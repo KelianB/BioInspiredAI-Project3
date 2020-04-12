@@ -8,7 +8,6 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 
 import aco.ACOAlgorithm;
-import jssp.JSSPAlgorithm;
 import jssp.ProblemInstance;
 import jssp.ProblemReader;
 import pso.PSOAlgorithm;
@@ -21,22 +20,32 @@ import utils.GanttChart;
 public class Main {
 	/* TODO
 	 * early stopping
+	 * handle inertia better to make sure it goes low enough for some local searching
 	 * gantt-chart images
-	 * 
 	 */
-	
-	
-	public static Config config;
 	
 	public static void main(String[] args) {
 		// Read configuration file
-		config = new Config("config.properties");
+		Config cfg = new Config("config.properties");
+		
+		int maxIterations = cfg.getInt("maxIterations");
+		int epochSize = cfg.getInt("epochSize");
+		int threads = cfg.getInt("threads");
+		String mode = cfg.get("mode");
+		String benchmark = cfg.get("benchmark");
+		String outputDirectory = cfg.get("outputDir");
+		
+		// Check the properties
+		if(!mode.equals("ACO") && !mode.equals("PSO")) {
+			System.err.println("[Critical Error] Mode '" + mode + "' does not exist.");
+			System.exit(1);			
+		}		
 		
 		// Create a problem reader
 		ProblemReader reader = new ProblemReader();
 		
 		// Read problem
-		ProblemInstance instance = reader.readProblem(config.get("problemInstance"));
+		ProblemInstance instance = reader.readProblem(cfg.get("problemInstance"));
 		
 		// Abort if the problem instance couldn't be read
 		if(instance == null) {
@@ -46,53 +55,40 @@ public class Main {
 		
 		// Print information about the problem instance
 		System.out.println("Problem instance: " + instance.getName() + 
-				" (" + instance.getNumberOfJobs() + " jobs, " + instance.getOperationsPerJob() + " machines)");		
+				" (" + instance.getNumberOfJobs() + " jobs, " + instance.getOperationsPerJob() + " machines)");
+				
+		int benchmarkMakespan = benchmark.equals("enabled") ?
+				Arrays.asList(56, 1059, 1276, 1130, 1451, 1721, 977).get(Integer.parseInt(instance.getName().substring(0, 1)) - 1) : 
+				benchmark.equals("disabled") ? 0 : cfg.getInt("benchmark");
 		
-		/** -------------TEMPORARY ------------- */
-		int optimalMakespan = Arrays.asList(56, 1059, 1276, 1130, 1451, 1721, 977).get(Integer.parseInt(instance.getName().substring(0, 1)) - 1);
-		/** ----------------------------------- */
+		Solver solver = new Solver(() -> {
+			return mode.equals("ACO") ? new ACOAlgorithm(instance, cfg) :
+				mode.equals("PSO") ? new PSOAlgorithm(instance, cfg) : null;
+		}, threads);
 		
-		String mode = config.get("mode");
-		
-		// Create algorithm
-		JSSPAlgorithm alg = null;
-		if(mode.equals("ACO"))
-			alg = new ACOAlgorithm(instance, config);
-		else if(mode.equals("PSO"))
-			alg = new PSOAlgorithm(instance, config);
-		else {
-			System.err.println("[Critical Error] Mode '" + mode + "' does not exist.");
-			System.exit(1);
-		}
-		
-		/*Runnable onTermination = () ->  {
-			System.out.println("TERMINATION");
-		};
-		// Define the shutdown hook to execute on termination
-		Runtime.getRuntime().addShutdownHook(new Thread(onTermination));*/
-		
-		int iterations = config.getInt("maxIterations");
-		int epochSize = config.getInt("epochSize");
-		
-		long epochStartTime = System.currentTimeMillis();
-		alg.printState();
-		for(int i = 0; i < iterations; i++) {
-			alg.runIteration();
-			if(alg.getRanIterations() % epochSize == 0) {
-				alg.printState();
-				System.out.println("Average time per iteration: " + Math.round(100 * (System.currentTimeMillis() - epochStartTime) / epochSize) / 100.0 + " ms");
-				epochStartTime = System.currentTimeMillis();
-			}
-		}
-
-		Integer[] bestSolution = alg.getBestSolution();
-		int bestMakespan = alg.computeMakespan(bestSolution);
-		System.out.println("\n--------------- Run finished ---------------");
-		System.out.println("Global best makespan: " + bestMakespan + "  (" + (100 * (bestMakespan - optimalMakespan) / (float) optimalMakespan) + "% off)");
-		GanttChart gc = alg.createGanttChart(bestSolution);
-		System.out.println("Gantt-Chart validity test: " + gc.test());
-		saveGanttChartImage(instance, gc);
+		solver.solve(maxIterations, epochSize, (bestAlgorithm) -> {
+			Integer[] bestSolution = bestAlgorithm.getBestSolution();
+			int bestMakespan = bestAlgorithm.computeMakespan(bestSolution);
+			
+			System.out.println("\nGlobal best makespan: " + bestMakespan);
+			
+			if(benchmarkMakespan != 0)
+				System.out.println("(benchmark: " + benchmarkMakespan + "; " + (100 * (bestMakespan - benchmarkMakespan) / (float) benchmarkMakespan) + "% off)");
+			
+			GanttChart gc = bestAlgorithm.createGanttChart(bestSolution);
+			System.out.println("Gantt chart validity test: " + gc.test());
+			System.out.println("Saving Gantt chart image...");
+			saveGanttChartImage(instance, gc, outputDirectory);
+			System.out.println("Done!");
+		});
 	}
+
+	
+	/*Runnable onTermination = () ->  {
+		System.out.println("TERMINATION");
+	};
+	// Define the shutdown hook to execute on termination
+	Runtime.getRuntime().addShutdownHook(new Thread(onTermination));*/
 
 	
 	/**
@@ -112,14 +108,15 @@ public class Main {
 	 * @param pi - A problem instance
 	 * @param gc - A Gantt chart
 	 */
-	private static void saveGanttChartImage(ProblemInstance pi, GanttChart gc) {
+
+	private static void saveGanttChartImage(ProblemInstance pi, GanttChart gc, String outputDirectory) {
 		BufferedImage img = gc.generateImage();
 
 		int makespan = gc.getEndTime();
 		
 		try {
 	    	// Create output directory
-	    	new File(config.get("outputDir")).mkdir();
+	    	new File(outputDirectory).mkdir();
 	    	
 	    	/*if(!clearedOutputDirs) {
 	    		clearDirectory(new File(config.get("outputDir")));
@@ -134,46 +131,11 @@ public class Main {
 	    	} while(new File(fileName).exists());
 
 	    	// Save the Gantt-Chart image
-	    	File outputFile = new File(fileName);
+	    	File outputFile = new File(outputDirectory + fileName);
 	    	ImageIO.write(img, "png", outputFile);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	
-	/*
-
-	public static void main(String[] args) {
-		
-		
-		// on weighted-sum GA termination: save fittest
-		Runnable onTerminationGA = () ->  {
-			System.out.println("Saving fittest");
-	        saveImages(instance, ((Individual) sga.getPopulation().getFittestIndividual()));			
-		};
-		
-		// on MOEA termination: save first front
-		Runnable onTerminationMOEA = () ->  {
-			System.out.println("Saving first front");
-			for(Individual i : ((MultiObjectivePopulation) sga.getPopulation()).getFirstFront())
-				saveImages(instance, i);
-		};
-		
-		Runnable onFinish = sga instanceof MultiObjectiveSegmentationGA ? onTerminationMOEA : onTerminationGA;
-		
-		// Define the shutdown hook to execute on termination
-		Runtime.getRuntime().addShutdownHook(new Thread(onFinish));
-		
-		for(int i = 0; i < config.getInt("generations"); i++) {
-			long time = System.nanoTime();
-			System.out.println("---------- Running generation #" + i + " ----------");
-			sga.runGeneration();
-			sga.printState();
-			System.out.println("(" + (System.nanoTime() - time) / 1000000 + " ms)");
-		}
-	}
-	*/
 }
