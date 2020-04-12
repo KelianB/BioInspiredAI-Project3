@@ -84,19 +84,18 @@ public class PSOAlgorithm extends JSSPAlgorithm {;
 	 * @param position - A position array from a particle
 	 */
 	public int computeMakespan(float[] position) {
-		long start = System.nanoTime();
-		long time = System.nanoTime();
-		boolean logTimes = false;
-		
 		// Get the operation order
 		Integer[] operationOrder = getOperationOrder(position);
-		
-		if(logTimes) {
-			System.out.println("Getting operation order took " + (System.nanoTime() - time) / 1000000.0f + " ms");
-			time = System.nanoTime();
-		}
+		// Compute the makespan from it
+		return super.computeMakespan(operationOrder);
+	}
 	
-		return computeMakespan(operationOrder);
+	/**
+	 * Get the current value of the inertia parameter.
+	 * @return the inertia value
+	 */
+	public float getInertia() {
+		return inertia;
 	}
 	
 	@Override
