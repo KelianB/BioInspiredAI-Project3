@@ -91,7 +91,7 @@ public class Main {
 		System.out.println("Global best makespan: " + bestMakespan + "  (" + (100 * (bestMakespan - optimalMakespan) / (float) optimalMakespan) + "% off)");
 		GanttChart gc = alg.createGanttChart(bestSolution);
 		System.out.println("Gantt-Chart validity test: " + gc.test());
-		// saveGanttChartImage(instance, gc);
+		saveGanttChartImage(instance, gc);
 	}
 
 	
@@ -113,7 +113,7 @@ public class Main {
 	 * @param gc - A Gantt chart
 	 */
 	private static void saveGanttChartImage(ProblemInstance pi, GanttChart gc) {
-		BufferedImage img = null/*gc.createImage()*/;
+		BufferedImage img = gc.generateImage();
 		int makespan = gc.getEndTime();
 		
 		try {
@@ -133,7 +133,7 @@ public class Main {
 	    	} while(new File(fileName).exists());
 
 	    	// Save the Gantt-Chart image
-	    	File outputFile = new File(fileName);
+	    	File outputFile = new File(config.get("outputDir") + fileName);
 	    	ImageIO.write(img, "png", outputFile);
 		}
 		catch (IOException e) {
