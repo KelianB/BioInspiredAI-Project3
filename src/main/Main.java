@@ -20,11 +20,10 @@ import utils.GanttChart;
  */
 public class Main {
 	/* TODO
+	 * multithreading
 	 * early stopping
 	 * gantt-chart images
-	 * 
 	 */
-	
 	
 	public static Config config;
 	
