@@ -55,7 +55,7 @@ public class Main {
 		
 		// Print information about the problem instance
 		System.out.println("Problem instance: " + instance.getName() + 
-				" (" + instance.getNumberOfJobs() + " jobs, " + instance.getOperationsPerJob() + " machines)");		
+				" (" + instance.getNumberOfJobs() + " jobs, " + instance.getOperationsPerJob() + " machines)");
 				
 		int benchmarkMakespan = benchmark.equals("enabled") ?
 				Arrays.asList(56, 1059, 1276, 1130, 1451, 1721, 977).get(Integer.parseInt(instance.getName().substring(0, 1)) - 1) : 
@@ -109,8 +109,10 @@ public class Main {
 	 * @param pi - A problem instance
 	 * @param gc - A Gantt chart
 	 */
+
 	private static void saveGanttChartImage(ProblemInstance pi, GanttChart gc, String outputDirectory) {
 		BufferedImage img = gc.generateImage();
+
 		int makespan = gc.getEndTime();
 		
 		try {

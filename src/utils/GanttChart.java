@@ -137,12 +137,8 @@ public class GanttChart {
 	 */
 	public BufferedImage generateImage() {
 
-		/* TODO
-		 * text into box
-		 * CHECK
-		 */
-		
-		int w = 1200, h = 900;
+		int end = getEndTime();
+		int w = 300 + end, h = 900;
 		
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img.createGraphics();
