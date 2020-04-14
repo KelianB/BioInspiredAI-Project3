@@ -3,6 +3,7 @@ package utils;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -135,46 +136,40 @@ public class GanttChart {
 	 * Generate an image from this Gantt-Chart.
 	 * @return an image representing this chart
 	 */
-	public BufferedImage generateImage() {
-
-		int end = getEndTime();
-		int w = 300 + end, h = 900;
+	public BufferedImage generateImage() {		
+		int w = 1200, h = 900;
 		
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
 		// Background
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, w, h);
 
-		Font font = new Font("SansSerif", Font.PLAIN, 20 );
-		g.setFont(font);
+		g.setFont(new Font("SansSerif", Font.PLAIN, 20));
 		g.setColor(Color.BLACK);
-
-		// machines scale
-		float machineScale = (h-30)/rows.length ;
-		for (int i=0 ; i<rows.length ; i++) {
-			String yLabel = "machine" + " " + i +"";
-			g.drawLine(200,(int)(i*machineScale), w, (int)(i*machineScale));
-			g.drawString(yLabel,10,i*machineScale +machineScale/2);
-		}
-
+		
+		int leftX = 140;
+		
+		w = getEndTime() + 500;
+		float timeScale = (w-280) / getEndTime();
+		float machineScale = (h-40) / rows.length;
+		
 		// time scale
-		float timeScale = (w-280)/getEndTime();
 		// draw the time line
-		g.drawLine(200,h-15,w,h-15);
-		for (int i=200 ; i < w-80 ; i++) {
-			if (((i-200)/timeScale) % ((int)getEndTime()/10)==0) {
-                g.setColor(Color.BLACK);
-				String xLabel = (i-200)/timeScale + "";
-				g.drawString(xLabel,i,h-10);
-				g.drawLine(i,h-15,i,0);
+		g.setColor(Color.BLACK);
+		for(int i = leftX; i < w-80; i++) {
+			float axisPos = (i-leftX) / timeScale;
+			if(axisPos % (getEndTime()/10) == 0) {
+				String xLabel = (int) axisPos + "";
+				g.setColor(Color.BLACK);
+				g.drawString(xLabel, i - g.getFontMetrics().stringWidth(xLabel) / 2, h-10);
+				g.drawLine(i, 0, i, h-35);
 			}
-			if ((i-200)/timeScale==getEndTime()) {
-                g.setColor(Color.BLACK);
-                String xLabel = getEndTime() + "";
-                g.drawString(xLabel,i,h-30);
-				g.drawLine(i,h-15,i,0);
+			else if(axisPos  % (int) (getEndTime()/50) == 0) {
+				g.setColor(Color.LIGHT_GRAY);
+				g.drawLine(i, 0, i, h-45);
 			}
 		}
 
@@ -182,29 +177,43 @@ public class GanttChart {
 		int njobs = rows[0].size();
 		List<Color> colors = new ArrayList<Color>();
 		Random rand = new Random();
-		for (int i=0 ; i< njobs ; i++) {
-			float r = rand.nextFloat();
-			float green = rand.nextFloat();
-			float b = rand.nextFloat();
-			Color randomColor = new Color(r, green, b);
+		for(int i = 0; i < njobs; i++) {
+			float min = 0.2f, max = 1.0f;
+			Color randomColor = new Color(min + rand.nextFloat() * (max-min), min + rand.nextFloat() * (max-min), min + rand.nextFloat() * (max-min));
 			colors.add(randomColor);
 		}
 
 		// fill the schedule
-		for (int machine=0 ; machine<rows.length ; machine++) {
-			for (GanttTask operation : rows[machine]) {
+		for(int machine = 0; machine < rows.length; machine++) {
+			for(GanttTask operation : rows[machine]) {
+				int operationW = (int) (operation.duration * timeScale);
+				
 				g.setColor(colors.get(operation.category));
-				g.fillRect((int) (200+operation.time*timeScale), (int)(machine*machineScale) , (int) (operation.duration*timeScale), (int) (machineScale));
-
+				g.fillRect((int) (leftX + operation.time*timeScale), (int) (machine*machineScale), operationW, (int) (machineScale));
+				
+				int x = (int) (leftX + operation.time * timeScale);
+				int y = (int) (machine*machineScale + machineScale / 2);
+				
 				g.setColor(Color.BLACK);
-				font = new Font( "SansSerif", Font.PLAIN, 15 );
-				g.setFont(font);
-				String label = operation.category + " . " + operation.indexInCategory + "";
-				int x = (int) (200+(operation.time+operation.duration/2)*timeScale);
-				int y = (int) (machine*machineScale + machineScale/2);
-				g.drawString(label,x,y);
+				g.setFont(new Font("SansSerif", Font.BOLD, 18));
+				String label = (operation.category + 1) + "";
+				g.drawString(label, x + (operationW - g.getFontMetrics().stringWidth(label)) / 2, y-5);
+				
+				g.setFont(new Font("SansSerif", Font.PLAIN, 15));
+				label = (operation.indexInCategory + 1) + "";
+				g.drawString(label, x + (operationW - g.getFontMetrics().stringWidth(label)) / 2, y+15);
 			}
 		}
+		
+		// machines scale
+		g.setColor(Color.BLACK);
+		g.setFont(new Font("SansSerif", Font.PLAIN, 20));
+		for(int i = 0; i < rows.length; i++) {
+			String yLabel = "Machine " + (i+1);
+			g.drawLine(leftX, (int) (i*machineScale), w, (int) (i*machineScale));
+			g.drawString(yLabel, 10, i*machineScale + machineScale/2 + 10);
+		}
+		g.drawLine(leftX, h-45, w, h-45);
 
 		g.dispose();
 		return img;
