@@ -160,8 +160,8 @@ public class Solver {
 		// Early stopping
 		int makespanAfter = alg.computeMakespan(alg.getBestSolution());
 				
-		if(makespanBefore == makespanAfter)
-			return false;
+		//if(makespanBefore == makespanAfter)
+			//return false;
 	
 		
 		// TODO: implement early-stopping

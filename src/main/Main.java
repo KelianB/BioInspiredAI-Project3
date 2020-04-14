@@ -78,6 +78,7 @@ public class Main {
 			GanttChart gc = bestAlgorithm.createGanttChart(bestSolution);
 			System.out.println("Gantt chart validity test: " + gc.test());
 			System.out.println("Saving Gantt chart image...");
+						
 			saveGanttChartImage(instance, gc, outputDirectory);
 			System.out.println("Done!");
 		});

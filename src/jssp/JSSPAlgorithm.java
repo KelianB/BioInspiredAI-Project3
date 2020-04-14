@@ -75,17 +75,8 @@ public abstract class JSSPAlgorithm {
 	 * @param operationOrder - An array containing the indices of the operations to run
 	 */
 	public int computeMakespan(Integer[] operationOrder) {
-		long start = System.nanoTime();
-		long time = System.nanoTime();
-		boolean logTimes = false;
-		
 		ProblemInstance pb = getProblemInstance();
 		
-		if(logTimes) {
-			System.out.println("Getting operation order took " + (System.nanoTime() - time) / 1000000.0f + " ms");
-			time = System.nanoTime();
-		}
-				
 		int machines = pb.getOperationsPerJob();
 
 		// Store the current operation index for each job
@@ -116,12 +107,6 @@ public abstract class JSSPAlgorithm {
 				makespan = endTime;
 			
 			currentOperationIndices[job]++;
-		}
-		
-		if(logTimes) {
-			System.out.println("Second step took " + (System.nanoTime() - time) / 1000000.0f + " ms");
-			System.out.println("Total makespan compute time: " + (System.nanoTime() - start) / 1000000.0f + " ms");
-			System.out.println("-");
 		}
 	
 		return makespan;
