@@ -20,7 +20,6 @@ import utils.GanttChart;
 public class Main {
 	/* TODO
 	 * early stopping
-	 * handle inertia better to make sure it goes low enough for some local searching
 	 * gantt-chart images
 	 */
 	
