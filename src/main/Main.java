@@ -21,6 +21,7 @@ public class Main {
 	/* TODO
 	 * early stopping
 	 * gantt-chart images
+	 * improve ant
 	 */
 	
 	public static void main(String[] args) {

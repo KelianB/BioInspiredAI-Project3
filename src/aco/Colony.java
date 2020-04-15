@@ -137,4 +137,12 @@ public class Colony {
 	public Integer[] getBestSoFar() {
 		return bestSoFar;
 	}
+	
+	/**
+	 * Get the best ever makespan found by this colony.
+	 * @return this smallest makespan
+	 */
+	public int getBestMakespanSoFar() {
+		return bestMakespanSoFar;
+	}
 }

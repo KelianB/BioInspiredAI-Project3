@@ -104,6 +104,11 @@ public class ACOAlgorithm extends JSSPAlgorithm {
 	}
 	
 	@Override
+	public int getBestOverallMakespan() {
+		return getColony().getBestMakespanSoFar();
+	}
+	
+	@Override
 	public int getRanIterations() {
 		return ranIterations;
 	}

@@ -47,6 +47,12 @@ public abstract class JSSPAlgorithm {
 	public abstract Integer[] getBestSolution();
 	
 	/**
+	 * Get the best makespan found by the algorithm. Corresponds to the solution returned by getBestSolution().
+	 * @return the smallest makespan
+	 */
+	public abstract int getBestOverallMakespan();
+	
+	/**
 	 * Get a random float in [0,1[ using this algorithm instance's random generator.
 	 * @return a random float between 0 (inclusive) and 1 (exclusive)
 	 */
@@ -89,13 +95,14 @@ public abstract class JSSPAlgorithm {
 		int[] jobTimes = new int[pb.getNumberOfJobs()];
 		
 		int makespan = 0;
-		
+	
 		for(Integer operationIndex : operationOrder) {
 			// Allow incomplete schedules
 			if(operationIndex == null)
 				break;
 			
 			int job = operationIndex / pb.getOperationsPerJob();
+			
 			int machine = pb.getMachine(job, currentOperationIndices[job]);
 			int duration = pb.getDuration(job, currentOperationIndices[job]);
 			

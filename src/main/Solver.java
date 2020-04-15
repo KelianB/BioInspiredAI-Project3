@@ -1,8 +1,10 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -18,8 +20,11 @@ public class Solver {
 	// Store algorithm instances
 	private List<JSSPAlgorithm> algorithms;
 	
-	// Whether or not the solver is currently working or not
-	private boolean solving;
+	// Store algorithms currently running
+	private List<JSSPAlgorithm> runningAlgorithms;
+	
+	// Store in a map the number of epochs since the last improvement in makespan for each algorithm
+	private Map<JSSPAlgorithm, Integer> epochsSinceImprovement;
 	
 	/**
 	 * Initialize the solver.
@@ -28,11 +33,11 @@ public class Solver {
 	 */
 	public Solver(Supplier<JSSPAlgorithm> algorithmSupplier, int numThreads) {
 		this.algorithms = new ArrayList<JSSPAlgorithm>();
-		this.solving = false;
-
+		this.runningAlgorithms = new ArrayList<JSSPAlgorithm>();
+		
 		// Get n algorithms from the supplier
 		for(int i = 0; i < numThreads; i++)
-			algorithms.add(algorithmSupplier.get());
+			algorithms.add(algorithmSupplier.get());		
 	}
 
 	/**
@@ -50,15 +55,17 @@ public class Solver {
 	 * @param onFinish - A function called when the solver has finished working
 	 */
 	public void solve(int maxIterations, int epochSize, Consumer<JSSPAlgorithm> onFinish) {
-		if(solving) {
+		if(!runningAlgorithms.isEmpty()) {
 			System.err.println("[JSSP Solver] Already solving.");
 			return;
 		}
-		solving = true;
 		
-		List<JSSPAlgorithm> running = new ArrayList<JSSPAlgorithm>();
-		for(JSSPAlgorithm alg : algorithms)
-			running.add(alg);
+		epochsSinceImprovement = new HashMap<JSSPAlgorithm, Integer>();
+		
+		for(JSSPAlgorithm alg : algorithms) {
+			runningAlgorithms.add(alg);
+			epochsSinceImprovement.put(alg, 0);
+		}
 		
 		/*Consumer<JSSPAlgorithm> runAlgorithm = (alg) -> {
 			long epochStartTime = System.currentTimeMillis();
@@ -77,14 +84,14 @@ public class Solver {
 			}
 		};*/
 		
-		while(!running.isEmpty()) {
+		while(!runningAlgorithms.isEmpty()) {
 			List<Thread> threads = new ArrayList<Thread>();
 			final List<JSSPAlgorithm> toStop = new ArrayList<JSSPAlgorithm>();
 			final List<Float> avgTimesPerIter = new ArrayList<Float>();
 			
 			// For each running algorithm, start a new thread to run an epoch 
-			for(int i = 0; i < running.size(); i++) {
-				final JSSPAlgorithm alg = running.get(i);
+			for(int i = 0; i < runningAlgorithms.size(); i++) {
+				final JSSPAlgorithm alg = runningAlgorithms.get(i);
 					
 				Thread thr = new Thread(() -> {
 					long epochStartTime = System.currentTimeMillis();
@@ -110,16 +117,14 @@ public class Solver {
 			}
 			
 			// Remove algorithms that should stop running
-			running.removeAll(toStop);
+			runningAlgorithms.removeAll(toStop);
 			
 			// Print state
-			System.out.println("\n############### " + (running.isEmpty() ? "FINISHED" : ("Iteration " + running.get(0).getRanIterations())) + " ###############");
-			printState(running, avgTimesPerIter);			
+			System.out.println("\n############### " + (runningAlgorithms.isEmpty() ? "FINISHED" : ("Iteration " + runningAlgorithms.get(0).getRanIterations())) + " ###############");
+			printState(avgTimesPerIter);			
 		}
 		
 		onFinish.accept(getBestAlgorithm());
-
-		solving = false;
 	}
 	
 	/**
@@ -142,6 +147,17 @@ public class Solver {
 	}
 	
 	/**
+	 * Calculate the average of the best makespan of all algorithms still running.
+	 * @return the average makespan
+	 */
+	private float calculateAverageBestMakespan() {
+		float avg = 0.0f;
+		for(JSSPAlgorithm alg : runningAlgorithms)
+			avg += alg.getBestOverallMakespan() / (float) runningAlgorithms.size();
+		return avg;
+	}
+	
+	/**
 	 * Run a single epoch for the given algorithm.
 	 * @param alg - An algorithm
 	 * @param epochSize - The number of iterations per epoch
@@ -149,7 +165,7 @@ public class Solver {
 	 * @return true if the algorithm should keep going after this epoch, false if it has finished running or if it should be early-stopped
 	 */
 	private boolean runEpoch(JSSPAlgorithm alg, int epochSize, int maxTotalIterations) {
-		int makespanBefore = alg.computeMakespan(alg.getBestSolution());
+		int makespanBefore = alg.getBestOverallMakespan();
 
 		for(int i = 0; i < epochSize; i++) {
 			alg.runIteration();
@@ -157,14 +173,43 @@ public class Solver {
 				return false;
 		}
 		
-		// Early stopping
-		int makespanAfter = alg.computeMakespan(alg.getBestSolution());
-				
-		//if(makespanBefore == makespanAfter)
-			//return false;
-	
+		float patience = 15.0f;
+		float threshold = 1.5f;
 		
-		// TODO: implement early-stopping
+		if(alg.getRanIterations() > epochSize * 2) {
+			int makespan = alg.getBestOverallMakespan();
+			
+			/** TERMINATION CONDITION */
+			
+			// Proportion of algorithms still running
+			float m = runningAlgorithms.size() / (float) algorithms.size();
+			
+			// (best_makespan - average_makespan) / (max(best_makespan - average_makespan) for all threads)
+			float delta = 0.0f;
+			
+			if(runningAlgorithms.size() > 1) {
+				float averageBestMakespan = calculateAverageBestMakespan();
+				float biggestMakespanDifference = 0;
+		
+				for(JSSPAlgorithm algo : runningAlgorithms) {
+					float diff = Math.abs(algo.getBestOverallMakespan() - averageBestMakespan);
+					if(diff > biggestMakespanDifference)
+						biggestMakespanDifference = diff;
+				}
+				delta = (makespan - averageBestMakespan) / biggestMakespanDifference;
+			}		
+			
+			// Update number of iterations since last makespan improvement
+			if(makespan < makespanBefore)
+				epochsSinceImprovement.put(alg, 0);
+			else
+				epochsSinceImprovement.put(alg, epochsSinceImprovement.get(alg) + 1);
+			float g = epochsSinceImprovement.get(alg) / patience;
+			System.out.println(m + " - " + delta + " - " + g);
+			
+			return m + delta + g < threshold;
+		}
+		
 		return true;
 	}
 	
@@ -173,23 +218,20 @@ public class Solver {
 	 * @param running - A list of running algorithms
 	 * @param avgTimesPerIter - The average time per iteration for each algorithm, during the last epoch
 	 */
-	private void printState(List<JSSPAlgorithm> running, List<Float> avgTimesPerIter) {
+	private void printState(List<Float> avgTimesPerIter) {
 		Locale l = Locale.ENGLISH;
 		
 		float avgTimePerIter = 0.0f;
 		for(float f : avgTimesPerIter)
 			avgTimePerIter += f / avgTimesPerIter.size();
 		
-		/*System.out.println("Inertia: " + inertia);
-		System.out.println("Best makespan of swarm: " + (-s.getFittest().getFitness()) + " (average = " + (-s.getAverageFitness()) + ")");
-		*/
-		System.out.println("Still running: " + running.size());
+		System.out.println("Still running: " + runningAlgorithms.size());
 		System.out.println("Average time per iteration: " + Math.round(100 * avgTimePerIter) / 100.0 + " ms");
 		JSSPAlgorithm bestAlg = getBestAlgorithm();
 		System.out.println("Best makespan achieved globally: " + bestAlg.computeMakespan(bestAlg.getBestSolution()));
 		for(int i = 0; i < algorithms.size(); i++) {
 			JSSPAlgorithm alg = algorithms.get(i);
-			String algStr = "[alg " + String.format(l, "%03d", i+1) + (running.contains(alg) ? "*" : "-") + "]";
+			String algStr = "[alg " + String.format(l, "%03d", i+1) + (runningAlgorithms.contains(alg) ? "*" : "-") + "]";
 			algStr += " best_makespan=" + String.format(l, "%04d", alg.computeMakespan(alg.getBestSolution()));
 			
 			if(alg instanceof PSOAlgorithm) {

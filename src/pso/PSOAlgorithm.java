@@ -146,7 +146,12 @@ public class PSOAlgorithm extends JSSPAlgorithm {;
 	}
 	
 	@Override
+	public int getBestOverallMakespan() {
+		return -getSwarm().getGlobalBestFitness();
+	}
+	
+	@Override
 	public int getRanIterations() {
 		return ranIterations;
-	}	
+	}
 }
