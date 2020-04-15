@@ -176,36 +176,26 @@ public class Solver {
 		float patience = 15.0f;
 		float threshold = 1.5f;
 		
+		/** EARLY TERMINATION */
 		if(alg.getRanIterations() > epochSize * 2) {
 			int makespan = alg.getBestOverallMakespan();
 			
-			/** TERMINATION CONDITION */
-			
-			// Proportion of algorithms still running
+			// Proportion of threads still running
 			float m = runningAlgorithms.size() / (float) algorithms.size();
 			
 			// (best_makespan - average_makespan) / (max(best_makespan - average_makespan) for all threads)
 			float delta = 0.0f;
-			
 			if(runningAlgorithms.size() > 1) {
 				float averageBestMakespan = calculateAverageBestMakespan();
-				float biggestMakespanDifference = 0;
-		
-				for(JSSPAlgorithm algo : runningAlgorithms) {
-					float diff = Math.abs(algo.getBestOverallMakespan() - averageBestMakespan);
-					if(diff > biggestMakespanDifference)
-						biggestMakespanDifference = diff;
-				}
+				float biggestMakespanDifference = runningAlgorithms.stream()
+						.map((algo) -> Math.abs(algo.getBestOverallMakespan() - averageBestMakespan))
+						.max(Float::compare).get();
 				delta = (makespan - averageBestMakespan) / biggestMakespanDifference;
 			}		
 			
 			// Update number of iterations since last makespan improvement
-			if(makespan < makespanBefore)
-				epochsSinceImprovement.put(alg, 0);
-			else
-				epochsSinceImprovement.put(alg, epochsSinceImprovement.get(alg) + 1);
+			epochsSinceImprovement.put(alg, makespan < makespanBefore ? 0 : (epochsSinceImprovement.get(alg) + 1));
 			float g = epochsSinceImprovement.get(alg) / patience;
-			System.out.println(m + " - " + delta + " - " + g);
 			
 			return m + delta + g < threshold;
 		}
@@ -234,12 +224,14 @@ public class Solver {
 			String algStr = "[alg " + String.format(l, "%03d", i+1) + (runningAlgorithms.contains(alg) ? "*" : "-") + "]";
 			algStr += " best_makespan=" + String.format(l, "%04d", alg.computeMakespan(alg.getBestSolution()));
 			
+			// Print PSO-specific info
 			if(alg instanceof PSOAlgorithm) {
 				PSOAlgorithm pso = (PSOAlgorithm) alg;
 				algStr += " inertia=" + String.format(l, "%.4f", pso.getInertia());
 				algStr += " swarm_best=" + String.format(l, "%04d", -pso.getSwarm().getFittest().getFitness());
 				algStr += " swarm_avg=" + String.format(l, "%06.4f", -pso.getSwarm().getAverageFitness());
 			}	
+			// Print ASO-specific info
 			else if(alg instanceof ACOAlgorithm) {
 				ACOAlgorithm aco = (ACOAlgorithm) alg;
 				algStr += " colony_best=" + String.format(l, "%04d", aco.getColony().getBestAnt().getMakespan());

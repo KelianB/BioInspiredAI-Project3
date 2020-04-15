@@ -19,9 +19,9 @@ import utils.GanttChart;
  */
 public class Main {
 	/* TODO
-	 * early stopping
-	 * gantt-chart images
-	 * improve ant
+	 * improve gantt-chart images
+	 * improve ACO
+	 * add patience & threshold to config
 	 */
 	
 	public static void main(String[] args) {

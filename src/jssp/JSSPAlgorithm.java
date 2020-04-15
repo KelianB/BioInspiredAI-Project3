@@ -102,14 +102,16 @@ public abstract class JSSPAlgorithm {
 				break;
 			
 			int job = operationIndex / pb.getOperationsPerJob();
-			
-			int machine = pb.getMachine(job, currentOperationIndices[job]);
-			int duration = pb.getDuration(job, currentOperationIndices[job]);
+			int operationInJob = currentOperationIndices[job];
+			int machine = pb.getMachine(job, operationInJob);
+			int duration = pb.getDuration(job, operationInJob);
 			
 			int operationStartTime = Math.max(jobTimes[job], machineTimes[machine]);
 			int endTime = operationStartTime + duration;
+			
 			machineTimes[machine] = endTime;
 			jobTimes[job] = endTime;
+			
 			if(endTime > makespan)
 				makespan = endTime;
 			
@@ -147,9 +149,11 @@ public abstract class JSSPAlgorithm {
 			
 			int operationStartTime = Math.max(jobTimes[job], machineTimes[machine]);
 			int endTime = operationStartTime + duration;
-			gc.addTask(machine, job, operationInJob, operationStartTime, duration);
+			
 			machineTimes[machine] = endTime;
 			jobTimes[job] = endTime;
+			
+			gc.addTask(machine, job, operationInJob, operationStartTime, duration);
 			
 			currentOperationIndices[job]++;
 		}

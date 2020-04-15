@@ -55,27 +55,16 @@ public class Ant {
 		int operation = chooseNextOperation();
 		connections[0] = operation + 1;
 		
-		long time1 = 0, time2 = 0;
-		
 		do {
-			long time = System.nanoTime();
-			
 			int temp = operation;
 			operation = chooseNextOperation();
 			connections[temp+1] = operation+1;
-			
-			time1 += System.nanoTime() - time;
-			time = System.nanoTime();
 			
 			scheduledOperations[scheduleIndex++] = operation;
 			lastJobOperation[operation / pb.getOperationsPerJob()] = operation;
 			
 			makespan = alg.computeMakespan(scheduledOperations);
-			
-			time2 += System.nanoTime() - time;
 		} while(scheduleIndex < scheduledOperations.length);
-
-		// System.out.println(time1/1000.0f + "us " + time2/1000.0f + "us ");
 	}
 	
 	/**
@@ -91,6 +80,7 @@ public class Ant {
 	 * @return the index of the next operation
 	 */
 	private int chooseNextOperation() {
+		// Compute eligible operations
 		List<Integer> accessibleOperations = getAccessibleOperations();
 		
 		if(accessibleOperations.size() == 1)
@@ -99,21 +89,16 @@ public class Ant {
 		ProblemInstance pb = alg.getProblemInstance();
 		float alpha = alg.getAlpha(), beta = alg.getBeta();
 		
+		// Calculate the probability for each eligible operation
 		float[] probabilities = new float[pb.getTotalOperations()];
-		
 		int currentNode = scheduleIndex == 0 ? 0 : (1 + scheduledOperations[scheduleIndex-1]);
-		
+
 		double denominator = 0;
 		for(int k : accessibleOperations)
 			denominator += Math.pow(alg.getColony().getPheromones(currentNode, k+1), alpha) / Math.pow(distance(k) + 0.01, beta);
 		
 		for(int j : accessibleOperations)
 			probabilities[j] = (float) ((Math.pow(alg.getColony().getPheromones(currentNode, j+1), alpha) / Math.pow(distance(j) + 0.01, beta)) / denominator);
-			
-		/*System.out.println(currentNode);
-		System.out.println(Arrays.toString(scheduledOperations));
-		System.out.println(Arrays.toString(probabilities));
-		System.out.println("accessible length: " + accessibleOperations.size());*/
 		
 		// Pick a node using roulette wheel with the calculated probabilities
 		int operation = RouletteWheel.spinOnce(alg.getRandom(), probabilities);
