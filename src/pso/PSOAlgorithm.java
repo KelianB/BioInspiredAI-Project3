@@ -17,13 +17,14 @@ public class PSOAlgorithm extends JSSPAlgorithm {;
 	// Keep track of ran iterations
 	private int ranIterations = 0;
 	
+	// The max number of iterations to run
+	private int maxIterations;
+	
 	// Store min and max velocity so they can be enforced during the particle updates
 	private float vmin, vmax;
 
 	// Inertia weight
-	private float inertia, minInertia;
-	// The step by which to linearly decrease inertia at each generation
-	private float inertiaStep;
+	private float inertia, initialInertia, minInertia;
 	
 	// Local and global acceleration constants
 	private float c1, c2;
@@ -43,17 +44,21 @@ public class PSOAlgorithm extends JSSPAlgorithm {;
 		for(int i = 0; i < tempOperationOrder.length; i++)
 			tempOperationOrder[i] = i;
 		
+		this.maxIterations = config.getInt("maxIterations");
+		
 		// Read fields from the config
 		this.vmin = config.getFloat("vmin");
 		this.vmax = config.getFloat("vmax");
-		this.inertia = config.getFloat("initialInertia");
+		this.initialInertia = config.getFloat("initialInertia");
 		this.minInertia = config.getFloat("minInertia");
-		this.inertiaStep = config.getFloat("inertiaStep");
+		
 		this.c1 = config.getFloat("localAccelerationConstant");
 		this.c2 = config.getFloat("globalAccelerationConstant");
 		
 		int swarmSize = config.getInt("swarmSize");
 		float xmin = config.getFloat("xmin"), xmax = config.getFloat("xmax");
+
+		this.inertia = initialInertia;
 		
 		// Initialize the swarm
 		this.swarm = Swarm.randomSwarm(this, swarmSize, xmin, xmax, vmin, vmax);		
@@ -110,11 +115,18 @@ public class PSOAlgorithm extends JSSPAlgorithm {;
 		
 		// Update inertia
 		if(inertia > minInertia) {
-			inertia -= inertiaStep;
+			// Linear
+			//inertia -= config.getFloat("inertiaStep");
+			
+			// Ajusted to spend more time exploring with lower inertia
+			double x = ranIterations / (float) maxIterations;
+			inertia = initialInertia - 1.35f * (float) Math.pow(Math.log10(x + 1), 1.0/4.0) * (initialInertia - minInertia);
+			
 			if(inertia < minInertia)
 				inertia = minInertia;
 		}
-			
+		
+		
 		ranIterations++;
 	}
 	
