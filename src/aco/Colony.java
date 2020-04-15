@@ -94,10 +94,9 @@ public class Colony {
 		for(int i = 0; i < pheromones.length; i++) {
 			for(int j = 0; j < pheromones[i].length; j++) {
 				float delta = 0.0f;
-				for(Ant a : ants) {
-					float makespan = (float) a.getMakespan();
-					delta += a.hasConnection(i, j) ? Q / makespan : 0;
-				}	
+				for(Ant a : ants)
+					delta += a.hasConnection(i, j) ? Q / (float) a.getMakespan() : 0;
+				
 				pheromones[i][j] = (1.0f - rho) * pheromones[i][j] + delta;
 			}
 		}
