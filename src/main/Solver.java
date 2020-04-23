@@ -26,14 +26,22 @@ public class Solver {
 	// Store in a map the number of epochs since the last improvement in makespan for each algorithm
 	private Map<JSSPAlgorithm, Integer> epochsSinceImprovement;
 	
+	// The termination value above which a thread will terminate.
+	private float terminationThreshold;
+	
+	// The makespan of the benchmark, used to print current relative gap (ignored when set to 0)
+	private int benchmarkMakespan;
+	
 	/**
 	 * Initialize the solver.
 	 * @param algorithmSupplier - A supplier that creates algorithm instances
 	 * @param numThreads - The number of algorithms that will run in parallel
 	 */
-	public Solver(Supplier<JSSPAlgorithm> algorithmSupplier, int numThreads) {
+	public Solver(Supplier<JSSPAlgorithm> algorithmSupplier, int numThreads, float terminationThreshold, int benchmarkMakespan) {
 		this.algorithms = new ArrayList<JSSPAlgorithm>();
 		this.runningAlgorithms = new ArrayList<JSSPAlgorithm>();
+		this.terminationThreshold = terminationThreshold;
+		this.benchmarkMakespan = benchmarkMakespan;
 		
 		// Get n algorithms from the supplier
 		for(int i = 0; i < numThreads; i++)
@@ -44,8 +52,8 @@ public class Solver {
 	 * Initialize the solver without parallel runs.
 	 * @param algorithmSupplier - A supplier that gives JSSPAlgorithm instances
 	 */
-	public Solver(Supplier<JSSPAlgorithm> algorithmSupplier) {
-		this(algorithmSupplier, 1);
+	public Solver(Supplier<JSSPAlgorithm> algorithmSupplier, float terminationThreshold) {
+		this(algorithmSupplier, 1, terminationThreshold, 0);
 	}
 	
 	/**
@@ -66,23 +74,6 @@ public class Solver {
 			runningAlgorithms.add(alg);
 			epochsSinceImprovement.put(alg, 0);
 		}
-		
-		/*Consumer<JSSPAlgorithm> runAlgorithm = (alg) -> {
-			long epochStartTime = System.currentTimeMillis();
-			alg.printState();
-			for(int i = 0; i < maxIterations; i++) {
-				alg.runIteration();
-				if(alg.getRanIterations() % epochSize == 0) {
-					alg.printState();
-					System.out.println("Average time per iteration: " + Math.round(100 * (System.currentTimeMillis() - epochStartTime) / epochSize) / 100.0 + " ms");
-					epochStartTime = System.currentTimeMillis();
-					
-					boolean keepGoing = onEpochEnd.apply(alg);
-					if(!keepGoing)
-						break;
-				}
-			}
-		};*/
 		
 		while(!runningAlgorithms.isEmpty()) {
 			List<Thread> threads = new ArrayList<Thread>();
@@ -174,8 +165,7 @@ public class Solver {
 		}
 		
 		float patience = 15.0f;
-		float threshold = 1.5f;
-		
+
 		/** EARLY TERMINATION */
 		if(alg.getRanIterations() > epochSize * 2) {
 			int makespan = alg.getBestOverallMakespan();
@@ -197,7 +187,7 @@ public class Solver {
 			epochsSinceImprovement.put(alg, makespan < makespanBefore ? 0 : (epochsSinceImprovement.get(alg) + 1));
 			float g = epochsSinceImprovement.get(alg) / patience;
 			
-			return m + delta + g < threshold;
+			return m + delta + g < terminationThreshold;
 		}
 		
 		return true;
@@ -218,7 +208,13 @@ public class Solver {
 		System.out.println("Still running: " + runningAlgorithms.size());
 		System.out.println("Average time per iteration: " + Math.round(100 * avgTimePerIter) / 100.0 + " ms");
 		JSSPAlgorithm bestAlg = getBestAlgorithm();
-		System.out.println("Best makespan achieved globally: " + bestAlg.computeMakespan(bestAlg.getBestSolution()));
+		
+		int bestMakespan = bestAlg.computeMakespan(bestAlg.getBestSolution());
+		String bestMakespanString = "Best makespan achieved globally: " + bestMakespan;
+		if(benchmarkMakespan != 0)
+			bestMakespanString += " (benchmark: " + benchmarkMakespan + "; " + (100 * (bestMakespan - benchmarkMakespan) / (float) benchmarkMakespan) + "% off)";
+		
+		System.out.println(bestMakespanString);
 		for(int i = 0; i < algorithms.size(); i++) {
 			JSSPAlgorithm alg = algorithms.get(i);
 			String algStr = "[alg " + String.format(l, "%03d", i+1) + (runningAlgorithms.contains(alg) ? "*" : "-") + "]";

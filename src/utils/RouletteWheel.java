@@ -51,7 +51,7 @@ public class RouletteWheel {
 	/*public static void main(String[] args) {
 		Random r = new Random();
 		
-		float[] probas = new float[] {0.5f, 0.5f, 10.0f};
+		float[] probas = new float[] {0f, 1f, 2f};
 		float[] weights = createCumulativeWeights(probas);
 		
 		HashMap<Integer, Integer> outputs = new HashMap<Integer, Integer>();

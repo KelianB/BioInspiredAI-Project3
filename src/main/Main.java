@@ -18,12 +18,6 @@ import utils.GanttChart;
  * @author Kelian Baert & Caroline de Pourtales
  */
 public class Main {
-	/* TODO
-	 * improve gantt-chart images
-	 * improve ACO
-	 * add patience & threshold to config
-	 */
-	
 	public static void main(String[] args) {
 		// Read configuration file
 		Config cfg = new Config("config.properties");
@@ -64,7 +58,7 @@ public class Main {
 		Solver solver = new Solver(() -> {
 			return mode.equals("ACO") ? new ACOAlgorithm(instance, cfg) :
 				mode.equals("PSO") ? new PSOAlgorithm(instance, cfg) : null;
-		}, threads);
+		}, threads, cfg.getFloat("terminationThreshold"), benchmarkMakespan);
 		
 		solver.solve(maxIterations, epochSize, (bestAlgorithm) -> {
 			Integer[] bestSolution = bestAlgorithm.getBestSolution();
@@ -83,26 +77,6 @@ public class Main {
 			System.out.println("Done!");
 		});
 	}
-
-	
-	/*Runnable onTermination = () ->  {
-		System.out.println("TERMINATION");
-	};
-	// Define the shutdown hook to execute on termination
-	Runtime.getRuntime().addShutdownHook(new Thread(onTermination));*/
-
-	
-	/**
-	 * Removes all files in a given directory
-	 * @param dir - A directory
-	 */
-	/*private static void clearDirectory(File dir) {
-	    File[] files = dir.listFiles();
-	    if(files != null) { // some JVMs return null for empty directories
-	        for(File f: files)
-	            f.delete();
-	    }
-	}*/	
 	
 	/**
 	 * Saves the image of a given Gantt chart

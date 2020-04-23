@@ -137,7 +137,7 @@ public class GanttChart {
 	 * @return an image representing this chart
 	 */
 	public BufferedImage generateImage() {		
-		int w = 1200, h = 900;
+		int w = getEndTime() + 300, h = 900;
 		
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img.createGraphics();
@@ -151,8 +151,7 @@ public class GanttChart {
 		g.setColor(Color.BLACK);
 		
 		int leftX = 140;
-		
-		w = getEndTime() + 500;
+
 		float timeScale = (w-280) / getEndTime();
 		float machineScale = (h-40) / rows.length;
 		

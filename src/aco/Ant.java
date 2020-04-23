@@ -51,13 +51,16 @@ public class Ant {
 		lastJobOperation = new int[pb.getNumberOfJobs()];
 		Arrays.fill(lastJobOperation, -1);
 		
+		// Random chance of ignoring pheromones
+		boolean ignorePheromones = alg.getRandom().nextFloat() < 0.1f;
+		
 		// Choose first operation
-		int operation = chooseNextOperation();
+		int operation = chooseNextOperation(ignorePheromones);
 		connections[0] = operation + 1;
 		
 		do {
 			int temp = operation;
-			operation = chooseNextOperation();
+			operation = chooseNextOperation(ignorePheromones);
 			connections[temp+1] = operation+1;
 			
 			scheduledOperations[scheduleIndex++] = operation;
@@ -79,7 +82,7 @@ public class Ant {
 	 * Computes the next operation in the schedule, taking into account the current schedule and the colony's pheromone matrix.
 	 * @return the index of the next operation
 	 */
-	private int chooseNextOperation() {
+	private int chooseNextOperation(boolean ignorePheromones) {
 		// Compute eligible operations
 		List<Integer> accessibleOperations = getAccessibleOperations();
 		
@@ -95,10 +98,10 @@ public class Ant {
 
 		double denominator = 0;
 		for(int k : accessibleOperations)
-			denominator += Math.pow(alg.getColony().getPheromones(currentNode, k+1), alpha) / Math.pow(distance(k) + 0.01, beta);
+			denominator += (ignorePheromones ? 1 : Math.pow(alg.getColony().getPheromones(currentNode, k+1), alpha)) / Math.pow(distance(k) + 0.5, beta);
 		
 		for(int j : accessibleOperations)
-			probabilities[j] = (float) ((Math.pow(alg.getColony().getPheromones(currentNode, j+1), alpha) / Math.pow(distance(j) + 0.01, beta)) / denominator);
+			probabilities[j] = (float) (((ignorePheromones ? 1 : Math.pow(alg.getColony().getPheromones(currentNode, j+1), alpha)) / Math.pow(distance(j) + 0.5, beta)) / denominator);
 		
 		// Pick a node using roulette wheel with the calculated probabilities
 		int operation = RouletteWheel.spinOnce(alg.getRandom(), probabilities);
@@ -129,9 +132,12 @@ public class Ant {
 	 * @return the increase in makespan that would come with adding the given operation to the schedule
 	 */
 	private int distance(int addedOperation) {
+		/*
 		Integer[] newOrder = Arrays.copyOf(scheduledOperations, scheduleIndex + 1);
 		newOrder[scheduleIndex] = addedOperation;
 		return alg.computeMakespan(newOrder) - getMakespan();
+		*/
+		return alg.getInducedGap(scheduledOperations, addedOperation);
 	}
 	
 	/**
