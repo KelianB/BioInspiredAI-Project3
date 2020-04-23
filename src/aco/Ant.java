@@ -52,7 +52,7 @@ public class Ant {
 		Arrays.fill(lastJobOperation, -1);
 		
 		// Random chance of ignoring pheromones
-		boolean ignorePheromones = alg.getRandom().nextFloat() < 0.1f;
+		boolean ignorePheromones = alg.getRandom().nextFloat() < 0.05f;
 		
 		// Choose first operation
 		int operation = chooseNextOperation(ignorePheromones);

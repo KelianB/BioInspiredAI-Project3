@@ -7,6 +7,9 @@ import jssp.ProblemInstance;
  * @author Kelian Baert & Caroline de Pourtales
  */
 public class Colony {
+	// Keep a reference to the algorithm
+	private ACOAlgorithm alg;
+	
 	// The ants that make up the colony
 	private Ant[] ants;
 	
@@ -21,6 +24,7 @@ public class Colony {
 	private float Q, rho;
 	
 	public Colony(ACOAlgorithm alg, int size, float initialPheromones, float Q, float rho) {
+		this.alg = alg;
 		this.ants = new Ant[size];
 		this.Q = Q;
 		this.rho = rho;
@@ -71,7 +75,8 @@ public class Colony {
 	 */
 	public void nextGeneration() {
 		for(int i = 0; i < ants.length; i++)
-			ants[i].generate();
+			if(alg.getRanIterations() == 0 || ants[i] != getBestAnt())
+				ants[i].generate();
 		
 		// Update the best solution so far
 		for(Ant a : this.getAnts()) {

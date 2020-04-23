@@ -67,7 +67,7 @@ public class ProblemReader {
 	 * @return an array of integers found in the given string
 	 */
 	private static int[] parseLineOfIntegers(String str) {
-		String[] segments = str.trim().split(" ");
+		String[] segments = str.replace("\t", " ").trim().split(" ");
 		return Arrays.stream(segments)
 				.filter((s) -> s.trim().length() > 0) // filter out empty sequences
 				.mapToInt(Integer::parseInt) // map from string to int
