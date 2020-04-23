@@ -137,7 +137,7 @@ public class GanttChart {
 	 * @return an image representing this chart
 	 */
 	public BufferedImage generateImage() {		
-		int w = getEndTime() + 300, h = 900;
+		int w = Math.max(1200, getEndTime() + 300), h = 800;
 		
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img.createGraphics();
